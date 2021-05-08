@@ -83,6 +83,7 @@ public class LineController {
         return ResponseEntity.noContent().build();
     }
 
+
     @ExceptionHandler(DataAccessException.class)
     private ResponseEntity<String> handleDatabaseExceptions(Exception e) {
         return ResponseEntity.badRequest().body(e.getMessage());
