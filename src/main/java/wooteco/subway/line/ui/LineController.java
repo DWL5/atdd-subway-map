@@ -5,13 +5,17 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import wooteco.subway.line.domain.Line;
+import wooteco.subway.line.domain.Section;
+import wooteco.subway.line.domain.Sections;
 import wooteco.subway.line.service.LineService;
-import wooteco.subway.line.ui.dto.LineRequest;
+import wooteco.subway.line.ui.dto.LineCreateRequest;
+import wooteco.subway.line.ui.dto.LineModifyRequest;
 import wooteco.subway.line.ui.dto.LineResponse;
+import wooteco.subway.station.domain.Station;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -27,60 +31,45 @@ public class LineController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LineResponse> createNewLine(@RequestBody LineRequest lineRequest) throws URISyntaxException {
-        final Line line = new Line(lineRequest.getName(), lineRequest.getColor());
+    public ResponseEntity<LineResponse> createNewLine(@RequestBody final LineCreateRequest lineCreateRequest) throws URISyntaxException {
+        final Section section = new Section(lineCreateRequest.getUpStationId(),
+                lineCreateRequest.getDownStationId(),
+                lineCreateRequest.getDistance());
+        final Sections sections = new Sections(Collections.singletonList(section));
+
+        final Line line = new Line(lineCreateRequest.getName(), lineCreateRequest.getColor(), sections);
         final Line savedLine = lineService.save(line);
 
+        final List<Station> stations = lineService.getStations(savedLine.getId());
+
         return ResponseEntity
-                .created(
-                        new URI("/lines/" + savedLine.getId())
-                )
-                .body(
-                        new LineResponse(
-                                savedLine.getId(),
-                                savedLine.getName(),
-                                savedLine.getColor()
-                        )
-                );
+                .created(new URI("/lines/" + savedLine.getId()))
+                .body(new LineResponse(savedLine, stations));
     }
 
-    @GetMapping(
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<LineResponse>> allLines() {
         final List<LineResponse> lineResponses = lineService.allLines().stream()
-                .map(line ->
-                        new LineResponse(
-                                line.getId(),
-                                line.getName(),
-                                line.getColor()
-                        )
-                ).collect(toList());
+                .map(line -> new LineResponse(line, lineService.getStations(line.getId())))
+                .collect(toList());
 
         return ResponseEntity.ok(lineResponses);
     }
 
-    @GetMapping(value = "/{id}",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LineResponse> findById(@PathVariable Long id) {
         final Line line = lineService.findById(id);
 
-        return ResponseEntity.ok(
-                new LineResponse(
-                        line.getId(),
-                        line.getName(),
-                        line.getColor()
-                )
-        );
+        final List<Station> stations = lineService.getStations(line.getId());
+
+        return ResponseEntity.ok(new LineResponse(line, stations));
     }
 
-    @PutMapping(value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @SuppressWarnings("rawtypes")
-    public ResponseEntity modifyById(@PathVariable Long id, @RequestBody LineRequest lineRequest) {
-        final Line line = new Line(id, lineRequest.getName(), lineRequest.getColor());
+    public ResponseEntity modifyById(@PathVariable Long id, @RequestBody LineModifyRequest lineModifyRequest) {
+
+        final Line line = new Line(id, lineModifyRequest.getName(), lineModifyRequest.getName());
         lineService.update(line);
 
         return ResponseEntity.ok().build();
