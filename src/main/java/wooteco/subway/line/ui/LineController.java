@@ -72,7 +72,7 @@ public class LineController {
         final Line line = new Line(id, lineModifyRequest.getName(), lineModifyRequest.getName());
         lineService.update(line);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
