@@ -11,6 +11,7 @@ import wooteco.subway.line.service.LineService;
 import wooteco.subway.line.ui.dto.LineCreateRequest;
 import wooteco.subway.line.ui.dto.LineModifyRequest;
 import wooteco.subway.line.ui.dto.LineResponse;
+import wooteco.subway.line.ui.dto.SectionAddRequest;
 import wooteco.subway.station.domain.Station;
 
 import java.net.URI;
@@ -66,8 +67,7 @@ public class LineController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @SuppressWarnings("rawtypes")
-    public ResponseEntity modifyById(@PathVariable Long id, @RequestBody LineModifyRequest lineModifyRequest) {
+    public ResponseEntity<Void> modifyById(@PathVariable Long id, @RequestBody LineModifyRequest lineModifyRequest) {
 
         final Line line = new Line(id, lineModifyRequest.getName(), lineModifyRequest.getName());
         lineService.update(line);
@@ -76,16 +76,23 @@ public class LineController {
     }
 
     @DeleteMapping("/{id}")
-    @SuppressWarnings("rawtypes")
-    public ResponseEntity deleteById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         lineService.deleteById(id);
 
         return ResponseEntity.noContent().build();
     }
 
 
-    @ExceptionHandler(DataAccessException.class)
+    @PostMapping(value = "/{id}/sections", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> addSectionInLine(@PathVariable final Long id, @RequestBody SectionAddRequest sectionAddRequest) {
+        Section section = new Section(sectionAddRequest.getUpStationId(), sectionAddRequest.getDownStationId(), sectionAddRequest.getDistance());
+        lineService.addSection(id, section);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler({DataAccessException.class, IllegalArgumentException.class})
     private ResponseEntity<String> handleDatabaseExceptions(Exception e) {
+        System.out.println("msg : " + e.getMessage());
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
