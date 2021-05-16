@@ -90,21 +90,7 @@ public class LineService {
     public void deleteById(final Long id) {
         lineRepository.deleteById(id);
     }
-
-    @Transactional
-    public void addSection(final Long id, final Section section) {
-        Line savedLine = lineRepository.findById(id);
-        savedLine.validateEnableAddSection(section);
-        boolean isEndPoint = savedLine.isEndPoint(section);
-
-        if (isEndPoint) {
-            lineRepository.addSection(id, section);
-            return;
-        }
-
-        addSectionBetween(id, savedLine, section);
-    }
-
+    
     @Transactional
     public void addSection(final Long id, final SectionAddRequest sectionAddRequest) {
         Line savedLine = lineRepository.findById(id);

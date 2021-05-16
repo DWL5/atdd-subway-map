@@ -237,7 +237,7 @@ class LineControllerTest {
                 station1.getId(), station2.getId(), 10);
         지하철_노선_등록되어_있음(request);
 
-        
+
         //when
         ExtractableResponse<Response> response = 지하철_노선_생성_요청(request);
 
