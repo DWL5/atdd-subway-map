@@ -36,16 +36,7 @@ class LineControllerTest {
     private static final String 신림역 = "신림역";
     private static final String 강남역 = "강남역";
     private static final String 양재역 = "양재역";
-
-    @Autowired
-    private LineService lineService;
-
-    @Autowired
-    private LineRepository lineRepository;
-
-    @Autowired
-    private StationRepository stationRepository;
-
+    
     @LocalServerPort
     private int port;
 
